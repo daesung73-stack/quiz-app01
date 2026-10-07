@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>다문화 사회와 세계 문화 이해 퀴즈</title>
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;font-family:"Noto Sans KR",Arial,sans-serif;
+  background:linear-gradient(135deg,#eef6ff,#f8f4ff);
+  color:#222;
+}
+.container{max-width:900px;margin:0 auto;padding:24px 16px 60px}
+.card{
+  background:#fff;border-radius:22px;padding:28px;
+  box-shadow:0 10px 35px rgba(40,60,100,.12);margin-top:20px;
+}
+h1{margin:0 0 10px;text-align:center;font-size:clamp(25px,5vw,38px)}
+h2{margin-top:0}
+.subtitle{text-align:center;color:#666;margin-bottom:28px}
+input[type="text"]{
+  width:100%;padding:15px;border:1px solid #ccd5e0;border-radius:12px;
+  font-size:17px;margin:10px 0 18px;
+}
+button{
+  border:0;border-radius:12px;padding:13px 20px;font-size:16px;
+  font-weight:700;cursor:pointer;background:#356ae6;color:white;
+}
+button:hover{filter:brightness(.95)}
+button.secondary{background:#667085}
+button.success{background:#1f9d68}
+.hidden{display:none!important}
+.progress{height:10px;background:#e8edf4;border-radius:20px;overflow:hidden;margin:18px 0}
+.progress-bar{height:100%;background:#356ae6;width:0;transition:.3s}
+.question{border:1px solid #e4e8ef;border-radius:16px;padding:20px;margin:18px 0}
+.question-title{font-size:18px;font-weight:700;line-height:1.6}
+.option{
+  display:block;border:1px solid #d7dde7;border-radius:12px;
+  padding:13px 15px;margin:9px 0;cursor:pointer;transition:.15s;
+}
+.option:hover{background:#f4f7ff}
+.option input{margin-right:9px}
+.result{text-align:center}
+.score{font-size:56px;font-weight:800;color:#356ae6;margin:10px}
+.review-item{border-radius:14px;padding:16px;margin:12px 0;background:#f6f8fb}
+.correct{border-left:6px solid #20a56a}
+.incorrect{border-left:6px solid #e05252}
+.certificate{
+  border:10px double #356ae6;padding:45px 30px;text-align:center;
+  background:#fffdf5;margin-top:20px;
+}
+.certificate h2{font-size:32px;color:#234aab}
+.cert-name{font-size:34px;font-weight:800;margin:30px 0}
+.small{font-size:13px;color:#777}
+.actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:22px}
+@media(max-width:600px){
+ .card{padding:20px 15px;border-radius:16px}
+ .certificate{padding:30px 15px}
+ .cert-name{font-size:28px}
+}
+@media print{
+ body{background:white}
+ .no-print{display:none!important}
+ .container{max-width:none;padding:0}
+ .card{box-shadow:none;margin:0}
+ .certificate{margin:0;min-height:90vh;display:flex;flex-direction:column;justify-content:center}
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+<section id="start" class="card">
+  <h1>🌏 다문화 사회와<br>세계 문화 이해 퀴즈</h1>
+  <p class="subtitle">퀴즈를 풀고 자신의 점수와 인증서를 확인해 보세요.</p>
+  <h2>참가자 정보</h2>
+  <label for="name">이름</label>
+  <input id="name" type="text" placeholder="이름을 입력하세요" maxlength="30">
+  <button onclick="startQuiz()" style="width:100%">퀴즈 시작하기</button>
+</section>
+
+<section id="quiz" class="card hidden">
+  <div style="display:flex;justify-content:space-between;gap:10px;align-items:center">
+    <strong id="questionCounter">1 / 10</strong>
+    <span id="participant"></span>
+  </div>
+  <div class="progress"><div id="progressBar" class="progress-bar"></div></div>
+  <div id="questions"></div>
+  <div class="actions no-print">
+    <button id="submitBtn" onclick="submitQuiz()">제출하고 결과 보기</button>
+  </div>
+</section>
+
+<section id="result" class="card hidden">
+  <div class="result">
+    <h1>🎉 퀴즈 결과</h1>
+    <p id="resultName"></p>
+    <div class="score" id="score">0점</div>
+    <p id="resultMessage"></p>
+  </div>
+  <div id="review"></div>
+  <div class="actions no-print">
+    <button class="success" onclick="showCertificate()">인증서 보기</button>
+    <button class="secondary" onclick="location.reload()">다시 풀기</button>
+  </div>
+</section>
+
+<section id="certificateSection" class="card hidden">
+  <div class="certificate" id="certificate">
+    <p>🌏 다문화 사회와 세계 문화 이해</p>
+    <h2>퀴즈 참가 인증서</h2>
+    <p>위 사람은 다문화 사회와 세계 문화 이해 퀴즈에<br>성실히 참여하였음을 인증합니다.</p>
+    <div class="cert-name" id="certificateName"></div>
+    <p id="certificateScore"></p>
+    <p id="certificateDate"></p>
+    <p class="small">본 인증서는 웹에서 생성된 참가 인증서입니다.</p>
+  </div>
+  <div class="actions no-print">
+    <button onclick="window.print()">🖨️ 인증서 인쇄 / PDF 저장</button>
+    <button class="secondary" onclick="location.reload()">처음으로</button>
+  </div>
+</section>
+
+</div>
+
+<script>
+// ==========================================================
+// ★ 퀴즈 문제를 수정하려면 아래 QUESTIONS만 수정하세요.
+// type: "ox" 또는 "choice"
+// answer: ox는 "O"/"X", choice는 보기 번호(0부터 시작)
+// ==========================================================
+const QUESTIONS = [
+  {
+    type:"ox",
+    question:"우리나라는 다양한 국적과 문화적 배경을 가진 사람들이 함께 살아가는 다문화 사회로 변화하고 있다.",
+    options:["O","X"],
+    answer:"O",
+    explanation:"우리 사회에는 다양한 국적과 문화적 배경을 가진 사람들이 함께 생활하고 있습니다."
+  },
+  {
+    type:"choice",
+    question:"다문화 사회에서 서로 다른 문화를 존중하기 위해 가장 적절한 태도는?",
+    options:["나의 문화만 옳다고 생각한다","다른 문화를 이해하고 존중한다","다른 문화를 무조건 배척한다","문화 차이를 무시한다","상대방에게 나의 문화를 강요한다"],
+    answer:1,
+    explanation:"서로 다른 문화의 차이를 이해하고 존중하는 태도가 중요합니다."
+  },
+  {
+    type:"ox",
+    question:"세계의 모든 나라는 같은 음식 문화를 가지고 있다.",
+    options:["O","X"],
+    answer:"X",
+    explanation:"음식 문화는 지역의 자연환경, 역사, 종교 등에 따라 다양하게 나타납니다."
+  },
+  {
+    type:"choice",
+    question:"다음 중 문화의 특징으로 가장 적절한 것은?",
+    options:["모든 문화는 완전히 같다","문화는 사회와 환경에 따라 다양하게 나타난다","문화는 절대로 변하지 않는다","문화는 한 사람만 가진다","문화에는 생활 방식이 포함되지 않는다"],
+    answer:1,
+    explanation:"문화는 사회의 역사와 환경 등에 따라 다양하게 형성되고 변화합니다."
+  },
+  {
+    type:"ox",
+    question:"다른 나라의 문화를 이해할 때에는 그 문화가 형성된 배경을 함께 살펴보는 것이 도움이 된다.",
+    options:["O","X"],
+    answer:"O",
+    explanation:"문화의 역사적·사회적 배경을 살펴보면 다른 문화를 더 깊이 이해할 수 있습니다."
+  },
+  {
+    type:"choice",
+    question:"문화 다양성을 존중하는 행동은 무엇인가?",
+    options:["문화가 다르다는 이유로 차별한다","고정관념으로 상대방을 판단한다","서로의 차이를 인정하고 대화한다","특정 문화를 열등하다고 생각한다","상대방의 전통을 비웃는다"],
+    answer:2,
+    explanation:"문화적 차이를 인정하고 서로 대화하는 것은 문화 다양성을 존중하는 태도입니다."
+  },
+  {
+    type:"ox",
+    question:"세계 문화에 대한 이해는 다른 사람과의 소통과 협력에 도움이 될 수 있다.",
+    options:["O","X"],
+    answer:"O",
+    explanation:"다른 문화에 대한 이해는 편견을 줄이고 원활한 소통과 협력에 도움이 됩니다."
+  },
+  {
+    type:"choice",
+    question:"다문화 사회에서 갈등을 줄이는 방법으로 적절하지 않은 것은?",
+    options:["상대방의 이야기를 경청한다","문화적 차이를 이해한다","편견을 줄이기 위해 노력한다","나와 다른 문화를 무조건 틀렸다고 판단한다","서로 존중하는 태도를 갖는다"],
+    answer:3,
+    explanation:"다른 문화를 무조건 틀렸다고 판단하는 것은 편견과 갈등을 키울 수 있습니다."
+  },
+  {
+    type:"ox",
+    question:"한 사회 안에서도 여러 문화가 함께 존재할 수 있다.",
+    options:["O","X"],
+    answer:"O",
+    explanation:"현대 사회에서는 여러 문화와 생활 방식이 함께 존재할 수 있습니다."
+  },
+  {
+    type:"choice",
+    question:"세계 시민에게 필요한 태도로 가장 적절한 것은?",
+    options:["다른 문화를 배척한다","문화 차이를 존중하고 함께 살아가는 방법을 생각한다","자신의 문화만 중요하게 생각한다","다른 나라 사람과 교류하지 않는다","편견을 그대로 받아들인다"],
+    answer:1,
+    explanation:"세계 시민에게는 다양성을 존중하고 서로 협력하려는 태도가 필요합니다."
+  }
+];
+
+let participantName="";
+let userAnswers=[];
+let score=0;
+
+function startQuiz(){
+  const name=document.getElementById("name").value.trim();
+  if(!name){alert("이름을 입력해 주세요.");return;}
+  participantName=name;
+  userAnswers=new Array(QUESTIONS.length).fill(null);
+  document.getElementById("participant").textContent=name+" 님";
+  document.getElementById("start").classList.add("hidden");
+  document.getElementById("quiz").classList.remove("hidden");
+  renderQuestions();
+}
+
+function renderQuestions(){
+  const box=document.getElementById("questions");
+  box.innerHTML="";
+  QUESTIONS.forEach((q,i)=>{
+    const div=document.createElement("div");
+    div.className="question";
+    let options=q.options.map((op,j)=>{
+      const value=q.type==="ox"?op:j;
+      return `<label class="option">
+        <input type="radio" name="q${i}" value="${value}" onchange="saveAnswer(${i}, this.value)">
+        ${String.fromCharCode(9312+j)} ${escapeHtml(op)}
+      </label>`;
+    }).join("");
+    div.innerHTML=`<div class="question-title">${i+1}. ${escapeHtml(q.question)}</div>${options}`;
+    box.appendChild(div);
+  });
+  updateProgress();
+}
+
+function saveAnswer(i,value){
+  userAnswers[i]=QUESTIONS[i].type==="ox"?value:Number(value);
+  updateProgress();
+}
+
+function updateProgress(){
+  const answered=userAnswers.filter(v=>v!==null).length;
+  document.getElementById("questionCounter").textContent=`${answered} / ${QUESTIONS.length} 응답`;
+  document.getElementById("progressBar").style.width=(answered/QUESTIONS.length*100)+"%";
+}
+
+function submitQuiz(){
+  const unanswered=userAnswers.filter(v=>v===null).length;
+  if(unanswered>0){
+    alert(`아직 ${unanswered}문항을 답하지 않았습니다.`);
+    return;
+  }
+  score=0;
+  QUESTIONS.forEach((q,i)=>{
+    if(String(userAnswers[i])===String(q.answer)) score++;
+  });
+  document.getElementById("quiz").classList.add("hidden");
+  document.getElementById("result").classList.remove("hidden");
+  document.getElementById("resultName").textContent=participantName+" 님의 결과";
+  document.getElementById("score").textContent=`${score * 10}점 (${score}/${QUESTIONS.length})`;
+  document.getElementById("resultMessage").textContent=
+    score===QUESTIONS.length?"모든 문제를 맞혔습니다! 훌륭합니다. 🎉":
+    score>=7?"아주 잘했습니다! 조금만 더 복습해 보세요.":
+    "수고하셨습니다. 해설을 확인하며 다시 학습해 보세요.";
+  renderReview();
+}
+
+function renderReview(){
+  const box=document.getElementById("review");
+  box.innerHTML="<h2>문항별 결과</h2>";
+  QUESTIONS.forEach((q,i)=>{
+    const ok=String(userAnswers[i])===String(q.answer);
+    const userText=q.type==="ox"
+      ? userAnswers[i]
+      : q.options[Number(userAnswers[i])];
+    const answerText=q.type==="ox"
+      ? q.answer
+      : q.options[Number(q.answer)];
+    const div=document.createElement("div");
+    div.className="review-item "+(ok?"correct":"incorrect");
+    div.innerHTML=`<strong>${i+1}. ${escapeHtml(q.question)}</strong>
+      <p>${ok?"✅ 정답":"❌ 오답"}<br>
+      나의 답: ${escapeHtml(String(userText))}<br>
+      정답: ${escapeHtml(String(answerText))}</p>
+      <p><strong>해설:</strong> ${escapeHtml(q.explanation)}</p>`;
+    box.appendChild(div);
+  });
+}
+
+function showCertificate(){
+  document.getElementById("result").classList.add("hidden");
+  document.getElementById("certificateSection").classList.remove("hidden");
+  document.getElementById("certificateName").textContent=participantName;
+  document.getElementById("certificateScore").textContent=`퀴즈 점수: ${score*10}점 (${score}/${QUESTIONS.length})`;
+  document.getElementById("certificateDate").textContent=
+    "발급일: "+new Date().toLocaleDateString("ko-KR");
+}
+
+function escapeHtml(text){
+  return text.replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
+}
+</script>
+</body>
+</html>
